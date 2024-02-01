@@ -9,6 +9,7 @@ from datetime import date
 from django.db import models
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+import pandas as pd
 
 # Create your views here.
 
@@ -230,6 +231,54 @@ class CreateLoan(View):
             return JsonResponse({'error': "Invalid Input"}, status=400)
 
         
+
+@method_decorator(csrf_exempt, name='dispatch')
+class Task(View):
+    def get(self, *args, **kwargs):
+        try:
+            excel_file_path = 'main/customer_data.xlsx'
+            df = pd.read_excel(excel_file_path)
+            for index, row in df.iterrows():
+                print(index)
+                try:
+                    new_customer = Customer.objects.create(
+                        customer_id = row['Customer ID'],
+                        first_name = row["First Name"],
+                        last_name = row["Last Name"],
+                        phone_number = row["Phone Number"],
+                        monthly_salary = row["Monthly Salary"],
+                        approved_limit = row["Approved Limit"],
+                        current_debt = 0,
+                    )
+                    print(new_customer)
+                except Exception as e:
+                    print("EXCEPTION ", e)
+            excel_file_path = 'main/loan_data.xlsx'
+            df = pd.read_excel(excel_file_path)
+            for index, row in df.iterrows():
+                print(index)
+                try:
+                    new_loan = Loan(
+                        customer_id = Customer.objects.filter(customer_id=row['Customer ID'])[0],
+                        loan_id = row["Loan ID"],
+                        loan_amount = row["Loan Amount"],
+                        tenure = row["Tenure"],
+                        interest_rate = row["Interest Rate"],
+                        monthly_repayment = row["Monthly payment"],
+                        emis_paid_on_time = row["EMIs paid on Time"],
+                        start_date = row["Date of Approval"].to_pydatetime(),
+                        end_date = row["End Date"].to_pydatetime(),
+                    )
+
+                    new_loan.save()
+                    print(new_loan)
+                except Exception as e:
+                    print("EXCEPTION ", e)
+
+            return JsonResponse({'Succuess': True}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': 'error'}, status=400)
+
 
 
 

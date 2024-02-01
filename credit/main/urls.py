@@ -8,4 +8,5 @@ urlpatterns = [
     path('view-loan/<int:loan_id>/', views.GetLoan.as_view(), name='view-loan'),
     path('check-eligibility', views.CheckEligibility.as_view(), name='check-eligibility'),
     path('create-loan', views.CreateLoan.as_view(), name='create_loan'),
+    path('task', views.Task.as_view(), name='task')
 ]
